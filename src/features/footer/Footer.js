@@ -4,18 +4,13 @@ import StatusFilter from './StatusFilter';
 import ColorFilters from './ColorFilters';
 import RemainingTodos from './RemainingTodos';
 import { colorFilterChanged } from '../filters/filtersSlice';
-
-const deriveRemainingTodos = (state) => {
-  const uncompletedTodos = state.todos.filter((todo) => !todo.completed);
-
-  return uncompletedTodos.length;
-};
+import { selectRemainingTodos } from '../todos/todosSlice';
 
 const getFilters = (state) => state.filters;
 
 const Footer = () => {
   const dispatch = useDispatch();
-  const todosRemaining = useSelector(deriveRemainingTodos);
+  const todosRemaining = useSelector(selectRemainingTodos);
 
   const { status, colors } = useSelector(getFilters);
 
