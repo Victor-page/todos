@@ -14,7 +14,7 @@ import { Provider } from 'react-redux';
 // store.dispatch({ type: 'todos/todoAdded', payload: 'Learn about reducers' });
 
 import { fetchTodos } from './features/todos/todosSlice';
-store.dispatch(fetchTodos);
+store.dispatch(fetchTodos());
 
 ReactDOM.render(
   <React.StrictMode>
