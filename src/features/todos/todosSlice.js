@@ -1,4 +1,4 @@
-import { createSelector } from 'reselect';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { client } from '../../api/client';
 import { StatusFilters } from '../filters/filtersSlice';
 const { All, Completed } = StatusFilters;
@@ -11,88 +11,56 @@ const { All, Completed } = StatusFilters;
 
 const initialState = { status: 'idle', entities: {} };
 
-const todosReducer = (state = initialState, action) => {
-  switch (action.type) {
-    case 'todos/todosLoading':
-      return { ...state, status: 'loading' };
-
-    case 'todos/todosLoaded': {
-      const newEntities = {};
-      action.payload.forEach((todo) => (newEntities[todo.id] = todo));
-
-      return { ...state, status: 'idle', entities: newEntities };
-    }
-
-    case 'todos/todoAdded': {
-      const todo = action.payload;
-
-      return { ...state, entities: { ...state.entities, [todo.id]: todo } };
-    }
-
-    case 'todos/todoDeleted': {
-      const newEntities = { ...state.entities };
-      delete newEntities[action.payload];
-
-      return { ...state, entities: newEntities };
-    }
-
-    case 'todos/todoToggled': {
-      const todoId = action.payload;
-      const todo = state.entities[todoId];
-
-      return {
-        ...state,
-        entities: {
-          ...state.entities,
-          [todoId]: { ...todo, completed: !todo.completed },
-        },
-      };
-    }
-
-    case 'todos/markAllCompleted': {
-      const newEntities = { ...state.entities };
-      Object.values(newEntities).forEach(
-        (todo) => (newEntities[todo.id] = { ...todo, completed: true })
+const todosSlice = createSlice({
+  name: 'todos',
+  initialState,
+  reducers: {
+    todoAdded({ entities }, { payload: todo }) {
+      entities[todo.id] = todo;
+    },
+    todoToggled({ entities }, { payload: todoId }) {
+      const todo = entities[todoId];
+      todo.completed = !todo.completed;
+    },
+    todosLoading(state) {
+      state.status = 'loading';
+    },
+    todosLoaded(state, { payload }) {
+      state.status = 'idle';
+      state.entities = payload;
+    },
+    todoDeleted({ entities }, { payload }) {
+      delete entities[payload];
+    },
+    markAllCompleted({ entities }) {
+      Object.values(entities).forEach((todo) => (todo.completed = true));
+    },
+    clearAllCompleted({ entities }) {
+      Object.values(entities).forEach(
+        (todo) => todo.completed && delete entities[todo.id]
       );
-
-      return { ...state, entities: newEntities };
-    }
-
-    case 'todos/clearAllCompleted': {
-      const newEntities = { ...state.entities };
-      Object.values(newEntities).forEach(
-        (todo) => todo.completed && delete newEntities[todo.id]
-      );
-
-      return {
-        ...state,
-        entities: newEntities,
-      };
-    }
-
-    case 'todos/colorSelected': {
-      const { color, todoId } = action.payload;
-      const todo = state.entities[todoId];
-
-      return {
-        ...state,
-        entities: { ...state.entities, [todoId]: { ...todo, color } },
-      };
-    }
-
-    default:
-      return state;
-  }
-};
-
-export const todosLoaded = (todos) => ({
-  type: 'todos/todosLoaded',
-  payload: todos,
+    },
+    todoColorSelected: {
+      reducer({ entities }, { payload: { color, todoId } }) {
+        entities[todoId].color = color;
+      },
+      prepare(todoId, color) {
+        return { payload: { todoId, color } };
+      },
+    },
+  },
 });
 
-export const todoAdded = (todo) => ({ type: 'todos/todoAdded', payload: todo });
-
-export const todosLoading = () => ({ type: 'todos/todosLoading' });
+export const {
+  todosLoaded,
+  todoAdded,
+  todosLoading,
+  todoColorSelected,
+  clearAllCompleted,
+  markAllCompleted,
+  todoDeleted,
+  todoToggled,
+} = todosSlice.actions;
 
 export const saveNewTodo = (text) => {
   return async (dispatch, getState) => {
@@ -153,4 +121,4 @@ export const selectRemainingTodos = createSelector(selectTodos, (todos) => {
   return uncompletedTodos.length;
 });
 
-export default todosReducer;
+export default todosSlice.reducer;

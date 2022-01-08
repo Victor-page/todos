@@ -15,7 +15,7 @@ const TodoListItem = ({ id }) => {
 
   const handleColorChanged = ({ target: { value: color } }) =>
     dispatch({
-      type: 'todos/colorSelected',
+      type: 'todos/todoColorSelected',
       payload: { color, todoId: id },
     });
 
