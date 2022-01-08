@@ -13,9 +13,8 @@ const initialState = { status: 'idle', entities: {} };
 
 const todosReducer = (state = initialState, action) => {
   switch (action.type) {
-    case 'todos/todosLoading': {
+    case 'todos/todosLoading':
       return { ...state, status: 'loading' };
-    }
 
     case 'todos/todosLoaded': {
       const newEntities = {};
@@ -81,9 +80,8 @@ const todosReducer = (state = initialState, action) => {
       };
     }
 
-    default: {
+    default:
       return state;
-    }
   }
 };
 
@@ -92,7 +90,7 @@ export const todosLoaded = (todos) => ({
   payload: todos,
 });
 
-export const todoAdded = (todo) => ({ type: 'todo/todoAdded', payload: todo });
+export const todoAdded = (todo) => ({ type: 'todos/todoAdded', payload: todo });
 
 export const todosLoading = () => ({ type: 'todos/todosLoading' });
 

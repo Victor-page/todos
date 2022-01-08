@@ -1,17 +1,10 @@
-import { createStore, applyMiddleware } from 'redux';
-import rootReducer from './features/reducer';
-import { composeWithDevTools } from 'redux-devtools-extension';
-import thunkMiddleware from 'redux-thunk';
+import { configureStore } from '@reduxjs/toolkit';
 
-let preloadedState;
-const persistedTodosString = localStorage.getItem('todos');
+import todosReducer from './features/todos/todosSlice';
+import filtersReducer from './features/filters/filtersSlice';
 
-if (persistedTodosString) {
-  preloadedState = { todos: JSON.parse(persistedTodosString) };
-}
-
-const composedEnhancer = composeWithDevTools(applyMiddleware(thunkMiddleware));
-
-const store = createStore(rootReducer, preloadedState, composedEnhancer);
+const store = configureStore({
+  reducer: { todos: todosReducer, filters: filtersReducer },
+});
 
 export default store;
