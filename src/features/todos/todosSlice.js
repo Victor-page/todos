@@ -36,16 +36,16 @@ const todosSlice = createSlice({
       state.status = 'idle';
       state.entities = payload;
     },
-    todoDeleted({ entities }, { payload }) {
-      delete entities[payload];
-    },
+    todoDeleted: todosAdapter.removeOne,
     markAllCompleted({ entities }) {
       Object.values(entities).forEach((todo) => (todo.completed = true));
     },
-    clearAllCompleted({ entities }) {
-      Object.values(entities).forEach(
-        (todo) => todo.completed && delete entities[todo.id]
-      );
+    clearAllCompleted(state, action) {
+      const completedIds = Object.values(state.entities)
+        .filter((todo) => todo.completed)
+        .map((todo) => todo.id);
+
+      todosAdapter.removeMany(state, completedIds);
     },
     todoColorSelected: {
       reducer({ entities }, { payload: { color, todoId } }) {
@@ -67,10 +67,7 @@ const todosSlice = createSlice({
         state.entities = newEntities;
         state.status = 'idle';
       })
-      .addCase(saveNewTodo.fulfilled, (state, action) => {
-        const todo = action.payload;
-        state.entities[todo.id] = todo;
-      });
+      .addCase(saveNewTodo.fulfilled, todosAdapter.addOne);
   },
 });
 
