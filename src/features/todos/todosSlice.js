@@ -16,15 +16,14 @@ const { All, Completed } = StatusFilters;
 
 const todosAdapter = createEntityAdapter();
 
-const initialState = { status: 'idle', entities: {} };
+const initialState = todosAdapter.getInitialState({
+  status: 'idle',
+});
 
 const todosSlice = createSlice({
   name: 'todos',
   initialState,
   reducers: {
-    todoAdded({ entities }, { payload: todo }) {
-      entities[todo.id] = todo;
-    },
     todoToggled({ entities }, { payload: todoId }) {
       const todo = entities[todoId];
       todo.completed = !todo.completed;
@@ -73,7 +72,6 @@ const todosSlice = createSlice({
 
 export const {
   todosLoaded,
-  todoAdded,
   todosLoading,
   todoColorSelected,
   clearAllCompleted,
