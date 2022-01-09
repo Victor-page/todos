@@ -35,9 +35,7 @@ const filtersSlice = createSlice({
             break;
         }
       },
-      prepare(color, changeType) {
-        return { payload: { color, changeType } };
-      },
+      prepare: (color, changeType) => ({ payload: { color, changeType } }),
     },
   },
 });

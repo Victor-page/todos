@@ -1,4 +1,9 @@
-import { createSelector, createSlice } from '@reduxjs/toolkit';
+import {
+  createSelector,
+  createSlice,
+  createAsyncThunk,
+  createEntityAdapter,
+} from '@reduxjs/toolkit';
 import { client } from '../../api/client';
 import { StatusFilters } from '../filters/filtersSlice';
 const { All, Completed } = StatusFilters;
@@ -8,6 +13,8 @@ const { All, Completed } = StatusFilters;
 
 //   return maxId + 1;
 // };
+
+const todosAdapter = createEntityAdapter();
 
 const initialState = { status: 'idle', entities: {} };
 
@@ -44,10 +51,26 @@ const todosSlice = createSlice({
       reducer({ entities }, { payload: { color, todoId } }) {
         entities[todoId].color = color;
       },
-      prepare(todoId, color) {
-        return { payload: { todoId, color } };
-      },
+      prepare: (todoId, color) => ({ payload: { todoId, color } }),
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchTodos.pending, (state, action) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchTodos.fulfilled, (state, action) => {
+        const newEntities = {};
+        action.payload.forEach((todo) => {
+          newEntities[todo.id] = todo;
+        });
+        state.entities = newEntities;
+        state.status = 'idle';
+      })
+      .addCase(saveNewTodo.fulfilled, (state, action) => {
+        const todo = action.payload;
+        state.entities[todo.id] = todo;
+      });
   },
 });
 
@@ -62,19 +85,21 @@ export const {
   todoToggled,
 } = todosSlice.actions;
 
-export const saveNewTodo = (text) => {
-  return async (dispatch, getState) => {
+export const saveNewTodo = createAsyncThunk(
+  'todo/saveNewTodo',
+  async (text) => {
     const initialTodo = { text };
     const response = await client.post('/fakeApi/todos', { todo: initialTodo });
-    dispatch(todoAdded(response.todo));
-  };
-};
 
-export const fetchTodos = () => async (dispatch, getState) => {
-  dispatch(todosLoading());
+    return response.todo;
+  }
+);
+
+export const fetchTodos = createAsyncThunk('todos/fetchTodos', async () => {
   const response = await client.get('/fakeApi/todos');
-  dispatch(todosLoaded(response.todos));
-};
+
+  return response.todos;
+});
 
 export const selectTodoEntities = (state) => state.todos.entities;
 
